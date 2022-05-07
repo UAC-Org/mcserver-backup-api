@@ -48,4 +48,5 @@ parser.add_argument(
 args = parser.parse_args()
 if not os.path.exists(args.directory):
     exit(print("Invalid directory was specified."))
+backup_directory = args.directory
 app.run(args.host, args.port)
