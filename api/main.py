@@ -1,28 +1,31 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+from typing import Optional, Tuple
+from threading import Timer
 import argparse
 import os
 import tempfile
 import flask
 import backup
-import utils
 
 
 app = flask.Flask(__name__)
 backup_directory: str = ""
+last_backup: Optional[Tuple[datetime, str]] = None
 
 
 @app.route("/generate")
 def generate():
+    global last_backup
     now = datetime.now()
+    if last_backup and last_backup[0] - now < timedelta(minutes=1):
+        return flask.send_file(last_backup[1])  # type: ignore
     filename = os.path.join(
         tempfile.gettempdir(),
         "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + str(now.microsecond)
     )
-    backup_archive, signature = backup.generate_backup(
-        backup_directory, filename
-    )
-    archive = filename + "-signed.tar"
-    utils.generate_tar_archive(archive, backup_archive, signature)
+    archive = backup.generate_backup(backup_directory, filename)
+    last_backup = (now, archive)
+    Timer(120, lambda: os.remove(archive)).start()
     return flask.send_file(archive)  # type: ignore
 
 
