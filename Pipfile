@@ -5,8 +5,8 @@ name = "pypi"
 
 [packages]
 flask = ">=2.1.2"
-pgpy = ">=0.5.4"
 zstandard = ">=0.17.0"
+gnupg = ">=2.3.1"
 
 [dev-packages]
 flake8 = ">=4.0.1"
