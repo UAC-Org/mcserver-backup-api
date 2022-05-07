@@ -13,7 +13,7 @@ backup_directory: str = ""
 last_backup: Optional[Tuple[datetime, str]] = None
 
 
-@app.route("/generate")
+@app.route("/get-backup")
 def generate():
     global last_backup
     now = datetime.now()
