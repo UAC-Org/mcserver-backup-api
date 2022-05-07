@@ -1,4 +1,4 @@
-from typing import Optional
+from datetime import datetime
 import argparse
 import os
 import tempfile
@@ -9,15 +9,21 @@ import utils
 
 app = flask.Flask(__name__)
 backup_directory: str = ""
-default_key: Optional[str] = None
 
 
 @app.route("/generate")
 def generate():
-    _, file = tempfile.mkstemp()
-    backup_archive, signature = backup.generate_backup(backup_directory, file, default_key)
-    archive = utils.generate_tar_archive(file + "-signed.tar.zst", backup_archive, signature)
-    return app.send_static_file(archive)
+    now = datetime.now()
+    filename = os.path.join(
+        tempfile.gettempdir(),
+        "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + str(now.microsecond)
+    )
+    backup_archive, signature = backup.generate_backup(
+        backup_directory, filename
+    )
+    archive = filename + "-signed.tar"
+    utils.generate_tar_archive(archive, backup_archive, signature)
+    return flask.send_file(archive)  # type: ignore
 
 
 parser = argparse.ArgumentParser()
@@ -38,12 +44,6 @@ parser.add_argument(
     help="The directory to backup.",
     type=str,
     required=True,
-)
-parser.add_argument(
-    "-k", "--key",
-    help="The key used to sign archive.",
-    type=str,
-    required=False, default=None
 )
 args = parser.parse_args()
 if not os.path.exists(args.directory):
