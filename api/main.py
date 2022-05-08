@@ -19,9 +19,9 @@ RequestInfo = NamedTuple("RequestInfo", times=int, archive=str)
 def get_backup():
     token = flask.request.args.get("token")
     if not token:
-        return "No token provided."
+        return "No token provided.", 400
     if not tokens.exist(token):
-        return "Invalid token."
+        return "Invalid token.", 401
     requests: Dict[str, RequestInfo] = app.config["client_requests"]
     if not tokens.timeout(token):
         request = requests.get(token)
@@ -29,6 +29,7 @@ def get_backup():
             if request.times < 5:
                 requests[token] = RequestInfo(request.times + 1, request.archive)
                 return flask.send_file(request.archive)  # type: ignore
+            return "Requests are too frequent.", 403
     tokens.update_token(token)
     now = datetime.now()
     prefix: str = app.config["prefix"]
