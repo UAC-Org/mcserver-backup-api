@@ -46,12 +46,13 @@ def push():
     last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
     if last_backup and last_backup.time - now < timedelta(minutes=1):
         return flask.send_file(last_backup.archive)  # type: ignore
-    filename = os.path.join(
+    prefix: str = app.config["prefix"]
+    archive = os.path.join(
         tempfile.gettempdir(),
-        "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
+        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar.zst",
     )
     directory: str = app.config["directory"]
-    archive = backup.generate_backup(directory, filename)
+    backup.generate_backup_with_signature(directory, archive)
     app.config["last_backup"] = LastBackupInfo(now, archive)
     return flask.send_file(archive)  # type: ignore
 
