@@ -3,29 +3,31 @@ import os
 import tempfile
 from datetime import datetime, timedelta
 from threading import Timer
-from typing import Optional, Tuple
+from typing import NamedTuple, Optional
 
 import backup
 import flask
 
 app = flask.Flask(__name__)
-backup_directory: str = ""
-last_backup: Optional[Tuple[datetime, str]] = None
+
+
+LastBackupInfo = NamedTuple("LastBackupInfo", time=datetime, archive=str)
 
 
 @app.route("/get-backup")
 def generate():
-    global last_backup
     now = datetime.now()
-    if last_backup and last_backup[0] - now < timedelta(minutes=1):
-        return flask.send_file(last_backup[1])  # type: ignore
+    last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
+    if last_backup and last_backup.time - now < timedelta(minutes=1):
+        return flask.send_file(last_backup.archive)  # type: ignore
     filename = os.path.join(
         tempfile.gettempdir(),
-        "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + str(now.microsecond),
+        "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
     )
-    archive = backup.generate_backup(backup_directory, filename)
-    last_backup = (now, archive)
-    _ = Timer(120, os.remove, archive).start()
+    directory: str = app.config["directory"]
+    archive = backup.generate_backup(directory, filename)
+    app.config["last_backup"] = LastBackupInfo(now, archive)
+    _ = Timer(120, os.remove, (archive,)).start()
     return flask.send_file(archive)  # type: ignore
 
 
@@ -56,5 +58,5 @@ parser.add_argument(
 args = parser.parse_args()
 if not os.path.exists(args.directory):
     exit(print("Invalid directory was specified."))
-backup_directory = args.directory
+app.config["directory"] = args.directory
 app.run(args.host, args.port)
