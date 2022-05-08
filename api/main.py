@@ -26,7 +26,6 @@ def push():
     if not tokens.timeout(token):
         request = requests.get(token)
         if request:
-            print(request.times)
             if request.times < 5:
                 requests[token] = RequestInfo(request.times + 1, request.archive)
                 return flask.send_file(request.archive)  # type: ignore
