@@ -8,13 +8,13 @@ def generate_tar_archive(archive_path: str, *sources: str):
     return archive_path
 
 
-def generate_zstd_archive(source_path: str, archive_path: str):
+def generate_zstd_compressed_file(source_path: str, compressed_file_path: str):
     import zstandard
 
     compressor = zstandard.ZstdCompressor()
-    with open(source_path, "rb") as source, open(archive_path, "wb") as archive:
+    with open(source_path, "rb") as source, open(compressed_file_path, "wb") as archive:
         compressor.copy_stream(source, archive)
-    return archive_path
+    return compressed_file_path
 
 
 def generate_signature(file_path: str, signature_path: str):
