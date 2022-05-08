@@ -20,9 +20,10 @@ def get_backup():
     last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
     if last_backup and last_backup.time - now < timedelta(minutes=1):
         return flask.send_file(last_backup.archive)  # type: ignore
+    prefix: str = app.config["prefix"]
     filename = os.path.join(
         tempfile.gettempdir(),
-        "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
+        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
     )
     directory: str = app.config["directory"]
     archive = backup.generate_backup_with_signature(directory, filename)
@@ -55,8 +56,17 @@ parser.add_argument(
     type=str,
     required=True,
 )
+parser.add_argument(
+    "-p",
+    "--prefix",
+    help="The prefix of backup files.",
+    type=str,
+    required=False,
+    default=""
+)
 args = parser.parse_args()
 if not os.path.exists(args.directory):
     exit(print("Invalid directory was specified."))
 app.config["directory"] = args.directory
+app.config["prefix"] = args.prefix
 app.run(args.host, args.port)
