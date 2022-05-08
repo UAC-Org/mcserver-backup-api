@@ -57,7 +57,7 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
-    "-p",
+    "-x",
     "--prefix",
     help="The prefix of backup files.",
     type=str,
