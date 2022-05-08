@@ -13,8 +13,7 @@ def touch(filepath: str) -> None:
     Touch a file.
     """
     if not path.isfile(filepath):
-        with open(filepath, "w") as f:
-            pass
+        open(filepath, "w").close()
     else:
         ts = stat(filepath).st_atime
         utime(filepath, (ts, time()))

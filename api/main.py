@@ -7,7 +7,7 @@ from typing import NamedTuple, Optional
 
 import backup
 import flask
-from . import token as tc
+import tokens
 
 app = flask.Flask(__name__)
 
@@ -16,7 +16,13 @@ LastBackupInfo = NamedTuple("LastBackupInfo", time=datetime, archive=str)
 
 
 @app.route("/get-backup")
-def get_backup():
+def push():
+    token = flask.request.args.get("token")
+    if not token:
+        return "No token provided."
+    if not tokens.get_token(token):
+        return "Invalid token."
+    tokens.update_token(token)
     now = datetime.now()
     last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
     if last_backup and last_backup.time - now < timedelta(minutes=1):
@@ -24,36 +30,12 @@ def get_backup():
     prefix: str = app.config["prefix"]
     archive = os.path.join(
         tempfile.gettempdir(),
-        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar.zst",
+        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar",
     )
     directory: str = app.config["directory"]
     backup.generate_backup_with_signature(directory, archive)
     app.config["last_backup"] = LastBackupInfo(now, archive)
     _ = Timer(120, os.remove, (archive,)).start()
-    return flask.send_file(archive)  # type: ignore
-
-
-# push backup with token validation
-@app.route("/request-backup")
-def push():
-    token = flask.request.args.get("token")
-    if not token:
-        return "No token provided."
-    if not tc.get_token(token):
-        return "Invalid token."
-    tc.update_token(token)
-    now = datetime.now()
-    last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
-    if last_backup and last_backup.time - now < timedelta(minutes=1):
-        return flask.send_file(last_backup.archive)  # type: ignore
-    prefix: str = app.config["prefix"]
-    archive = os.path.join(
-        tempfile.gettempdir(),
-        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar.zst",
-    )
-    directory: str = app.config["directory"]
-    backup.generate_backup_with_signature(directory, archive)
-    app.config["last_backup"] = LastBackupInfo(now, archive)
     return flask.send_file(archive)  # type: ignore
 
 
