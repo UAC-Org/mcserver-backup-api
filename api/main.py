@@ -16,7 +16,7 @@ RequestInfo = NamedTuple("RequestInfo", times=int, archive=str)
 
 
 @app.route("/get-backup")
-def push():
+def get_backup():
     token = flask.request.args.get("token")
     if not token:
         return "No token provided."
