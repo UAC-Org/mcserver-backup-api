@@ -51,7 +51,7 @@ def get_token(token: str) -> bool:
     token_dir = path.join(path.dirname(__file__), "token")
     if path.isfile(path.join(token_dir, token)):
         # check token if used recently (5 minutes)
-        if path.getmtime(path.join(token_dir, token)) > time() - 300:
+        if path.getmtime(path.join(token_dir, token)) < time() - 300:
             return True
     return False
 
