@@ -40,7 +40,7 @@ def update_token(token: str) -> None:
             token2...
             ...
     """
-    
+
     if not path.isdir(token_dir):
         makedirs(token_dir)
     touch(path.join(token_dir, token))

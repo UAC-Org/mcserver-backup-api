@@ -11,8 +11,9 @@ def generate_tar_archive(archive_path: str, *sources: str):
 def generate_zstd_compressed_tar_archive(archive_path: str, *sources: str):
     import os
     import tarfile
-    import zstandard
     import tempfile
+
+    import zstandard
 
     compressor = zstandard.ZstdCompressor()
     _, tar_archive = tempfile.mkstemp()
