@@ -15,7 +15,7 @@ LastBackupInfo = NamedTuple("LastBackupInfo", time=datetime, archive=str)
 
 
 @app.route("/get-backup")
-def generate():
+def get_backup():
     now = datetime.now()
     last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
     if last_backup and last_backup.time - now < timedelta(minutes=1):
@@ -25,7 +25,7 @@ def generate():
         "mcserer-backup-" + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
     )
     directory: str = app.config["directory"]
-    archive = backup.generate_backup(directory, filename)
+    archive = backup.generate_backup_with_signature(directory, filename)
     app.config["last_backup"] = LastBackupInfo(now, archive)
     _ = Timer(120, os.remove, (archive,)).start()
     return flask.send_file(archive)  # type: ignore
