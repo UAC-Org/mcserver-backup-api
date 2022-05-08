@@ -20,7 +20,7 @@ def push():
     token = flask.request.args.get("token")
     if not token:
         return "No token provided."
-    if not tokens.get_token(token):
+    if not tokens.exist(token):
         return "Invalid token."
     tokens.update_token(token)
     now = datetime.now()

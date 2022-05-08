@@ -7,6 +7,8 @@ import string
 from os import makedirs, path, remove, stat, utime
 from time import time
 
+token_dir = path.join(path.dirname(__file__), "token")
+
 
 def touch(filepath: str) -> None:
     """
@@ -38,22 +40,24 @@ def update_token(token: str) -> None:
             token2...
             ...
     """
-    token_dir = path.join(path.dirname(__file__), "token")
+    
     if not path.isdir(token_dir):
         makedirs(token_dir)
     touch(path.join(token_dir, token))
 
 
-def get_token(token: str) -> bool:
+def exist(token: str) -> bool:
     """
-    Check if a token is valid.
+    Check if a token is exist.
     """
-    token_dir = path.join(path.dirname(__file__), "token")
-    if path.isfile(path.join(token_dir, token)):
-        # check token if used recently (5 minutes)
-        if path.getmtime(path.join(token_dir, token)) < time() - 300:
-            return True
-    return False
+    return path.isfile(path.join(token_dir, token))
+
+
+def timeout(token: str) -> bool:
+    """
+    Check if a token is timeout.
+    """
+    return path.getmtime(path.join(token_dir, token)) < time() - 300
 
 
 def remove_token(token: str) -> None:
