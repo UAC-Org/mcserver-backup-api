@@ -37,10 +37,13 @@ def get_backup():
         prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar",
     )
     directory: str = app.config["directory"]
-    backup.generate_backup_with_signature(directory, archive)
     requests[token] = RequestInfo(1, archive)
-    _ = Timer(300, os.remove, (archive,)).start()
-    return flask.send_file(archive)  # type: ignore
+    try:
+        backup.generate_backup_with_signature(directory, archive)
+        _ = Timer(300, os.remove, (archive,)).start()
+        return flask.send_file(archive)  # type: ignore
+    except Exception:
+        requests.pop(token)
 
 
 parser = argparse.ArgumentParser()
