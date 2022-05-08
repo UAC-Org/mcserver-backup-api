@@ -8,26 +8,20 @@ def generate_tar_archive(archive_path: str, *sources: str):
     return archive_path
 
 
-def generate_zstd_compressed_file(source_path: str, compressed_file_path: str):
-    import zstandard
-
-    compressor = zstandard.ZstdCompressor()
-    with open(source_path, "rb") as source, open(compressed_file_path, "wb") as archive:
-        compressor.copy_stream(source, archive)
-    return compressed_file_path
-
-
 def generate_zstd_compressed_tar_archive(archive_path: str, *sources: str):
     import os
     import tarfile
+    import zstandard
+    import tempfile
 
-    name = os.path.splitext(archive_path)[0]
-    tar_path = name + ".tar"
-    with tarfile.open(tar_path, "w") as archive:
+    compressor = zstandard.ZstdCompressor()
+    _, tar_archive = tempfile.mkstemp()
+    with tarfile.open(tar_archive, "w") as archive:
         for source in sources:
             archive.add(source, arcname=os.path.split(source)[1])
-    generate_zstd_compressed_file(tar_path, archive_path)
-    os.remove(tar_path)
+    with open(tar_archive, "rb") as tar, open(archive_path, "wb") as zstd:
+        compressor.copy_stream(tar, zstd)
+    os.remove(tar_archive)
     return archive_path
 
 

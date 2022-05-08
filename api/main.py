@@ -1,9 +1,9 @@
 import argparse
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from threading import Timer
-from typing import NamedTuple, Optional
+from typing import Dict, NamedTuple
 
 import backup
 import flask
@@ -12,7 +12,7 @@ import tokens
 app = flask.Flask(__name__)
 
 
-LastBackupInfo = NamedTuple("LastBackupInfo", time=datetime, archive=str)
+RequestInfo = NamedTuple("RequestInfo", times=int, archive=str)
 
 
 @app.route("/get-backup")
@@ -22,11 +22,16 @@ def push():
         return "No token provided."
     if not tokens.exist(token):
         return "Invalid token."
+    requests: Dict[str, RequestInfo] = app.config["client_requests"]
+    if not tokens.timeout(token):
+        request = requests.get(token)
+        if request:
+            print(request.times)
+            if request.times < 5:
+                requests[token] = RequestInfo(request.times + 1, request.archive)
+                return flask.send_file(request.archive)  # type: ignore
     tokens.update_token(token)
     now = datetime.now()
-    last_backup: Optional[LastBackupInfo] = app.config.get("last_backup")  # type: ignore
-    if last_backup and last_backup.time - now < timedelta(minutes=1):
-        return flask.send_file(last_backup.archive)  # type: ignore
     prefix: str = app.config["prefix"]
     archive = os.path.join(
         tempfile.gettempdir(),
@@ -34,8 +39,8 @@ def push():
     )
     directory: str = app.config["directory"]
     backup.generate_backup_with_signature(directory, archive)
-    app.config["last_backup"] = LastBackupInfo(now, archive)
-    _ = Timer(120, os.remove, (archive,)).start()
+    requests[token] = RequestInfo(1, archive)
+    _ = Timer(300, os.remove, (archive,)).start()
     return flask.send_file(archive)  # type: ignore
 
 
@@ -76,4 +81,5 @@ if not os.path.exists(args.directory):
     exit(print("Invalid directory was specified."))
 app.config["directory"] = args.directory
 app.config["prefix"] = args.prefix
+app.config["client_requests"] = {}
 app.run(args.host, args.port)
