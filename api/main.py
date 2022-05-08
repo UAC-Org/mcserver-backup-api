@@ -21,12 +21,12 @@ def get_backup():
     if last_backup and last_backup.time - now < timedelta(minutes=1):
         return flask.send_file(last_backup.archive)  # type: ignore
     prefix: str = app.config["prefix"]
-    filename = os.path.join(
+    archive = os.path.join(
         tempfile.gettempdir(),
-        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond,
+        prefix + now.strftime("%Y%m%d%H%M%S") + "%05d" % now.microsecond + ".tar.zst",
     )
     directory: str = app.config["directory"]
-    archive = backup.generate_backup_with_signature(directory, filename)
+    backup.generate_backup_with_signature(directory, archive)
     app.config["last_backup"] = LastBackupInfo(now, archive)
     _ = Timer(120, os.remove, (archive,)).start()
     return flask.send_file(archive)  # type: ignore
