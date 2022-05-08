@@ -4,7 +4,7 @@ Token management API.
 
 import random
 import string
-from os import path, makedirs, remove, stat, utime
+from os import makedirs, path, remove, stat, utime
 from time import time
 
 
@@ -23,7 +23,9 @@ def generate_token(length: int = 32) -> str:
     """
     Generate a random token.
     """
-    return "".join(random.choice(string.ascii_letters + string.digits) for _ in range(length))
+    return "".join(
+        random.choice(string.ascii_letters + string.digits) for _ in range(length)
+    )
 
 
 def update_token(token: str) -> None:

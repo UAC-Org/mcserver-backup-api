@@ -69,7 +69,7 @@ parser.add_argument(
     help="The prefix of backup files.",
     type=str,
     required=False,
-    default=""
+    default="",
 )
 args = parser.parse_args()
 if not os.path.exists(args.directory):

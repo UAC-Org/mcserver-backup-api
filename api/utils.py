@@ -20,6 +20,7 @@ def generate_zstd_compressed_file(source_path: str, compressed_file_path: str):
 def generate_zstd_compressed_tar_archive(archive_path: str, *sources: str):
     import os
     import tarfile
+
     name = os.path.splitext(archive_path)[0]
     tar_path = name + ".tar"
     with tarfile.open(tar_path, "w") as archive:
