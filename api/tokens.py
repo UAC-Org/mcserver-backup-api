@@ -25,9 +25,7 @@ def generate_token(length: int = 32) -> str:
     """
     Generate a random token.
     """
-    return "".join(
-        random.choice(string.ascii_letters + string.digits) for _ in range(length)
-    )
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 def update_token(token: str) -> None:
