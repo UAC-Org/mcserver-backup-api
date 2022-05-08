@@ -25,7 +25,7 @@ def generate():
     )
     archive = backup.generate_backup(backup_directory, filename)
     last_backup = (now, archive)
-    Timer(120, lambda: os.remove(archive)).start()
+    _ = Timer(120, os.remove, archive).start()
     return flask.send_file(archive)  # type: ignore
 
 
