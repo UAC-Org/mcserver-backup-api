@@ -45,6 +45,7 @@ def get_backup():
         return flask.send_file(archive)  # type: ignore
     except Exception:
         requests.pop(token)
+        raise
 
 
 parser = argparse.ArgumentParser()
