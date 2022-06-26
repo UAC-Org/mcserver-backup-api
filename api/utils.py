@@ -41,6 +41,7 @@ def generate_zstd_compressed_tar_archive(archive_path: str, *sources: str):
             compressor.copy_stream(tar, zstd)
     except Exception:
         _try_remove(archive_path)
+        raise
     finally:
         _try_remove(tar_archive)
     return archive_path
